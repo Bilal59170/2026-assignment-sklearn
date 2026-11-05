@@ -106,9 +106,6 @@ from pandas.api.types import is_datetime64_any_dtype
 # ============================================================
 # Question 1
 # ============================================================
-from pandas.api.types import is_datetime64_any_dtype
-
-
 class RegistrationSplit(BaseCrossValidator):
     """Cross-validator that splits users by registration month.
 
@@ -127,7 +124,7 @@ class RegistrationSplit(BaseCrossValidator):
                 "X[\"registration_month\"] should be of datetime dtype, "
                 f"not {months.dtype}"
             )
-        
+
     def _valid_month_pairs(self, X, y=None):
         """Return the list of (train_month, test_month) pairs that are valid.
         Also checks whether X["registration_month"] has type datetime."""
@@ -214,7 +211,7 @@ class RegistrationSplit(BaseCrossValidator):
         # Type check:  registration_month column is date_time
         months = X["registration_month"]
         self._check_datetime(months)
-        
+
         # if months.dtype != "datetime64[ns]":
         #     raise ValueError(
         #         f"Type of X[\"registration_month\"] should be "
