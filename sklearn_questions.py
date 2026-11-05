@@ -68,7 +68,7 @@ churn on unseen users.
 
 Requirements:
 - The pipeline must contain a ``ColumnTransformer`` that handles categorical
-  columns (``gender``, ``level``) and numerical columns separately.
+columns (``gender``, ``level``) and numerical columns separately.
 - Handle missing values in numerical features (``rate_errors`` contains NaN).
 - End with a classifier of your choice.
 - Achieve a ROC-AUC of at least 0.72 on the held-out test set.
@@ -79,17 +79,17 @@ Think carefully about which columns are truly available at prediction time.
 Hints
 -----
 - Q1 - ``pd.Series.dt.to_period('M')`` converts datetimes to year-month
-  periods that are easy to sort and compare.
+periods that are easy to sort and compare.
 
 - Q1 - Remember to validate that ``registration_month`` is of datetime dtype
-  and raise a ``ValueError`` if not.
+and raise a ``ValueError`` if not.
 
 - Q2 - Use ``sklearn.compose.ColumnTransformer`` together with
-  ``sklearn.preprocessing.OneHotEncoder`` (for categoricals) and
-  ``sklearn.impute.SimpleImputer`` (for numericals with NaN).
+``sklearn.preprocessing.OneHotEncoder`` (for categoricals) and
+``sklearn.impute.SimpleImputer`` (for numericals with NaN).
 
 - Q2 - Explore the data first with ``pandas`` before writing the pipeline.
-  Any feature that might be problematic/too correlated with the data?
+Any feature that might be problematic/too correlated with the data?
 """
 import pandas as pd
 import numpy as np
@@ -101,11 +101,13 @@ from sklearn.preprocessing import (
     OneHotEncoder,
     StandardScaler,
 )
-
+from pandas.api.types import is_datetime64_any_dtype
 
 # ============================================================
 # Question 1
 # ============================================================
+from pandas.api.types import is_datetime64_any_dtype
+
 
 class RegistrationSplit(BaseCrossValidator):
     """Cross-validator that splits users by registration month.
@@ -118,17 +120,26 @@ class RegistrationSplit(BaseCrossValidator):
     one churner **and** one non-churner are generated.
     """
 
+    def _check_datetime(self, months):
+        """Raise a ValueError if ``months`` is not of datetime dtype."""
+        if not is_datetime64_any_dtype(months):
+            raise ValueError(
+                "X[\"registration_month\"] should be of datetime dtype, "
+                f"not {months.dtype}"
+            )
+        
     def _valid_month_pairs(self, X, y=None):
         """Return the list of (train_month, test_month) pairs that are valid.
         Also checks whether X["registration_month"] has type datetime."""
 
         # Type check
         months = X["registration_month"]
-        if months.dtype != "datetime64[ns]":
-            raise ValueError(
-                f"Type of X[\"registration_month\"] should be "
-                f"datetime64[ns], not {months.dtype}"
-            )
+        self._check_datetime(months)
+        # if months.dtype != "datetime64[ns]":
+        #     raise ValueError(
+        #         f"Type of X[\"registration_month\"] should be "
+        #         f"datetime64[ns], not {months.dtype}"
+        #     )
 
         unique_months = np.sort(months.unique())
         if y is None:
@@ -202,11 +213,14 @@ class RegistrationSplit(BaseCrossValidator):
 
         # Type check:  registration_month column is date_time
         months = X["registration_month"]
-        if months.dtype != "datetime64[ns]":
-            raise ValueError(
-                f"Type of X[\"registration_month\"] should be "
-                f"datetime64[ns], not {months.dtype}"
-            )
+        self._check_datetime(months)
+        
+        # if months.dtype != "datetime64[ns]":
+        #     raise ValueError(
+        #         f"Type of X[\"registration_month\"] should be "
+        #         f"datetime64[ns], not {months.dtype}"
+        #     )
+
         # {Timestamp: positional indices (ndarray)}: np array of indices
         # for each month
         month_indices = months.groupby(months).indices
@@ -311,12 +325,12 @@ if __name__ == "__main__":
     # downgrade & churn proportion
     print("\nhas_downgraded = churn ?")
     print(f"proportion of equality: \
-          {np.mean(X["has_downgraded"] == y)}")
+        {np.mean(X["has_downgraded"] == y)}")
 
     # cancel_initiated same as churn ?
     print("\ncancel_initiated same as churn ?")
     print(f"proportion of equality: \
-          {np.mean(X["cancel_initiated"] == y)}")
+        {np.mean(X["cancel_initiated"] == y)}")
     # nan check
     print("\n ###NaN check in train set###")
     print("Categories in X:")
@@ -337,11 +351,11 @@ if __name__ == "__main__":
     # downgrade & churn proportion
     print("\nhas_downgraded = churn ?")
     print(f"proportion of equality: \
-          {np.mean(X_test["has_downgraded"] == y_test)}")
+        {np.mean(X_test["has_downgraded"] == y_test)}")
     # cancel_initiated same as churn ?
     print("\ncancel_initiated same as churn ?")
     print(f"proportion of equality: \
-          {np.mean(X_test["cancel_initiated"] == y_test)}")
+        {np.mean(X_test["cancel_initiated"] == y_test)}")
 
     ######### End of the personnal checks ################
 
